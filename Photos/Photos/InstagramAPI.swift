@@ -6,9 +6,11 @@
 //  Copyright © 2015 iOS DeCal. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 class InstagramAPI {
+    static let sharedInstance = InstagramAPI()
+    private init(){}
     /* Connects with the Instagram API and pulls resources from the server. */
     func loadPhotos(completion: (([Photo]) -> Void)!) {
         /* 
@@ -23,15 +25,21 @@ class InstagramAPI {
          *       d. Wait for completion of Photos array
          */
         // FILL ME IN
-        var url: NSURL
-
+        
+        var url: NSURL = Utils.getPopularURL()
+        
         let task = NSURLSession.sharedSession().dataTaskWithURL(url) {
             (data: NSData?, response: NSURLResponse?, error: NSError?) -> Void in
             if error == nil {
                 //FIX ME
-                var photos: [Photo]!
+                var photos = [Photo]()
                 do {
                     let feedDictionary = try NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.MutableContainers) as! NSDictionary
+                    
+                    let data = feedDictionary.valueForKey("data") as! [NSDictionary]
+                    for image in data {
+                        photos.append(Photo(data: image))
+                    }
                     // FILL ME IN, REMEMBER TO USE FORCED DOWNCASTING
                     
                     
@@ -48,5 +56,15 @@ class InstagramAPI {
             }
         }
         task.resume()
+    }
+    
+    func loadImage(url : String, completion: (UIImage)->()) {
+        let task = NSURLSession.sharedSession().dataTaskWithURL(NSURL(string : url)!) { (data, response, error) -> Void in
+            if error == nil {
+                completion(UIImage(data: data!)!)
+            }
+        }
+        task.resume()
+        
     }
 }
